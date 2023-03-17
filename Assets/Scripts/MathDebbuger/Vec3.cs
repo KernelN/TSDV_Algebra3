@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 namespace CustomMath
 {
@@ -9,9 +9,9 @@ namespace CustomMath
         public float y;
         public float z;
 
-        public float sqrMagnitude => x * x + y * y + z * z;
-        public Vector3 normalized => this / magnitude;
-        public float magnitude => Mathf.Sqrt(x * x + y * y + z * z);
+        public float sqrMagnitude => x * x + y * y + z * z; //lambda should only be used in light properties
+        public Vector3 normalized { get { return this / magnitude; } } 
+        public float magnitude { get { return Mathf.Sqrt(x * x + y * y + z * z); } } 
 
         #endregion
 
