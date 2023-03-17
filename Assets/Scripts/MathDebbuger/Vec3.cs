@@ -9,9 +9,10 @@ namespace CustomMath
         public float y;
         public float z;
 
-        public float sqrMagnitude { get { throw new NotImplementedException(); } }
-        public Vector3 normalized { get { throw new NotImplementedException(); } }
-        public float magnitude { get { throw new NotImplementedException(); } }
+        public float sqrMagnitude => x * x + y * y + z * z;
+        public Vector3 normalized => this / magnitude;
+        public float magnitude => Mathf.Sqrt(x * x + y * y + z * z);
+
         #endregion
 
         #region constants
