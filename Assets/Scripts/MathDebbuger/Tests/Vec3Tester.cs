@@ -63,19 +63,25 @@ namespace CustomMath
 
         public Vector3 Vec3CalcV3()
         {
-            return Vec3.Cross(inputs[0], inputs[1]);
+            return Vec3.Reflect(inputs[0], inputs[1]);
+            //return Vec3.ClampMagnitude(inputs[0], optionalFloat);
+            //return Vec3.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
         }
         public Vector3 Vector3CalcV3()
         {
-            return Vector3.Cross(inputs[0], inputs[1]);
+            return Vector3.Reflect(inputs[0], inputs[1]);
+            //return Vector3.ClampMagnitude(inputs[0], optionalFloat);
+            //return Vector3.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
         }
         public float Vec3CalcFloat()
         {
-            return Vec3.Dot(inputs[0], inputs[1]);
+            return Vec3.SqrMagnitude(inputs[0]);
+            //return Vec3.Distance(inputs[0], inputs[1]);
         }
         public float Vector3CalcFloat()
         {
-            return Vector3.Dot(inputs[0], inputs[1]);
+            return Vector3.SqrMagnitude(inputs[0]);
+            //return Vector3.Distance(inputs[0], inputs[1]);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+
 namespace CustomMath
 {
     public struct Vec3 : IEquatable<Vec3>
@@ -9,9 +10,11 @@ namespace CustomMath
         public float y;
         public float z;
 
-        public float sqrMagnitude => x * x + y * y + z * z; //lambda should only be used in light properties
-        public Vector3 normalized { get { return this / magnitude; } } 
-        public float magnitude { get { return Mathf.Sqrt(x * x + y * y + z * z); } } 
+        //get {} is calculated every time the values change, instead of lambda. Think later best/optimal option
+        //ref: https://www.tabsoverspaces.com/233844-back-to-csharp-basics-difference-between-and-get-for-properties
+        public float sqrMagnitude { get { return x * x + y * y + z * z; } }
+        public Vec3 normalized { get { return this / magnitude; } } 
+        public float magnitude { get { return Mathf.Sqrt(sqrMagnitude); } } 
 
         #endregion
 
@@ -130,67 +133,153 @@ namespace CustomMath
         }
         public static float Angle(Vec3 from, Vec3 to)
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/geometry/angle-between-vectors/
+            //Using dot formula because has 3 less multiplications, so it's more efficient
+            //The formula is in radians, so it must be converted to degrees (credits to ChatGPT 3.5) 
+            return Mathf.Acos(Vec3.Dot(from, to) / (from.magnitude * to.magnitude)) * Mathf.Rad2Deg;
         }
         public static Vec3 ClampMagnitude(Vec3 vector, float maxLength)
         {
-            throw new NotImplementedException();
+            //get {} property is calculated every time the vector changes,
+            //so using magnitude multiple times doesn't bring performance issues
+            return vector.magnitude > maxLength ? vector.normalized * maxLength : vector;
         }
+        /// <summary>
+        /// Returns the length of the vector
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
         public static float Magnitude(Vec3 vector)
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/magnitude-of-a-vector-formula/ (the symbol for mag is |x|)
+            return Mathf.Sqrt(vector.magnitude);
         }
+        /// <summary>
+        /// Cross returns the perpendicular vector to the 2 input vectors
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public static Vec3 Cross(Vec3 a, Vec3 b)
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/geometry/cross-product/
+            return new Vec3(a.y * b.z - a.z * b.y, -(a.x * b.z - a.z * b.x), a.x * b.y - a.y * b.x);
         }
         public static float Distance(Vec3 a, Vec3 b)
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/geometry/distance-between-two-points/
+            //Formula into code:
+            //Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2) + Mathf.Pow(a.z - b.z, 2));
+            //As this is basically substracting each component and calculating an individual magnitude...
+            //...we can just substract each vector and calculate magnitude
+            //(order is not important because magnitude is absolute)
+            return (a - b).magnitude;
         }
+        /// <summary>
+        /// Dot returns the sum of the product of the components of the 2 vectors
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static float Dot(Vec3 a, Vec3 b)
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/algebra/scalar-product/
+            return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
         }
+        /// <summary>
+        /// Linearly interpolates the two vectors
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static Vec3 Lerp(Vec3 a, Vec3 b, float t)
         {
-            throw new NotImplementedException();
+            //Both a & b are scaled to get a whole of 1 using t
+            //(if t is .5, it will be 50% a and 50% b, but t .25 it will be 75% a and 25% b)
+            //(this happens because:
+            //1-.25 = .75, so it scales a by .75
+            //then scales b by .25
+            //and when it adds them together you get .75 from a & .25 from b
+            //formula: https://www.mathworks.com/matlabcentral/answers/259773-linear-interpolation-in-3d-space
+            t = Mathf.Clamp01(t);
+            return (1.0f-t) * a + t * b;
         }
         public static Vec3 LerpUnclamped(Vec3 a, Vec3 b, float t)
         {
-            throw new NotImplementedException();
+            //Same as lerp, but without clamping T
+            return (1.0f-t) * a + t * b;
         }
+        /// <summary>
+        /// Returns a combination of the biggest components of the 2 vectors
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static Vec3 Max(Vec3 a, Vec3 b)
         {
-            throw new NotImplementedException();
+            float x = a.x > b.x ? a.x : b.x;
+            float y = a.y > b.y ? a.y : b.y;
+            float z = a.z > b.z ? a.z : b.z;
+            return new Vec3(x, y, z);
         }
+        /// <summary>
+        /// Returns a combination of the smallest components of the 2 vectors
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public static Vec3 Min(Vec3 a, Vec3 b)
         {
-            throw new NotImplementedException();
+            float x = a.x < b.x ? a.x : b.x;
+            float y = a.y < b.y ? a.y : b.y;
+            float z = a.z < b.z ? a.z : b.z;
+            return new Vec3(x, y, z);
         }
         public static float SqrMagnitude(Vec3 vector)
         {
-            throw new NotImplementedException();
+            return vector.sqrMagnitude;
         }
+        /// <summary>
+        /// Projects a vector onto another vector (expands normal vector until it reaches vector "height")
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="onNormal"></param>
+        /// <returns></returns>
         public static Vec3 Project(Vec3 vector, Vec3 onNormal) 
         {
-            throw new NotImplementedException();
+            //https://www.cuemath.com/geometry/projection-vector/
+            //Projection gives a scalar, multiply that scalar by the normal to get the projected vector 
+            return (Dot(vector, onNormal) / onNormal.magnitude) * onNormal.normalized;
         }
+        /// <summary>
+        /// Reflects the vector off a plane defined by the normal.
+        /// </summary>
+        /// <param name="inDirection"></param>
+        /// <param name="inNormal"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public static Vec3 Reflect(Vec3 inDirection, Vec3 inNormal) 
         {
-            throw new NotImplementedException();
+            //http://www.sunshine2k.de/articles/coding/vectorreflection/vectorreflection.html
+            return inDirection - 2 * Dot(inDirection, inNormal) * inNormal;
         }
         public void Set(float newX, float newY, float newZ)
         {
-            throw new NotImplementedException();
+            x = newX;
+            y = newY;
+            z = newZ;
         }
         public void Scale(Vec3 scale)
         {
-            throw new NotImplementedException();
+            x *= scale.x;
+            y *= scale.y;
+            z *= scale.z;
         }
         public void Normalize()
         {
-            throw new NotImplementedException();
+            this = normalized;
         }
         #endregion
 
