@@ -3,6 +3,7 @@ using System;
 
 namespace CustomMath
 {
+    [System.Serializable]
     public struct Vec3 : IEquatable<Vec3>
     {
         #region Variables
