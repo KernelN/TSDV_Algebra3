@@ -112,6 +112,8 @@ namespace CustomMath
             //It gives the distance from the old point to the new point
             //credits to ChatGPT, check cuemath projection for reference
             //https://www.cuemath.com/geometry/projection-vector/
+            
+            //No te voy a mentir lean, esta si que no la entiendo del todo, pero comprobe con el tester y funciona
             plane.distance += Vector3.Dot(plane.normal, translation);
         }
         #endregion
