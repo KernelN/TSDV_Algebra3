@@ -3,7 +3,7 @@ using System;
 
 namespace CustomMath
 {
-    [System.Serializable]
+    [Serializable]
     public struct Vec3 : IEquatable<Vec3>
     {
         #region Variables
@@ -119,6 +119,11 @@ namespace CustomMath
         public static implicit operator Vector3(Vec3 v3)
         {
             return new Vector3(v3.x, v3.y, v3.z);
+        }
+        
+        public static implicit operator Vec3(Vector3 v3)
+        {
+            return new Vec3(v3.x, v3.y, v3.z);
         }
 
         public static implicit operator Vector2(Vec3 v2)

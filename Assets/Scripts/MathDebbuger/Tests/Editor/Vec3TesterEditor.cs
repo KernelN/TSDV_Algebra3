@@ -6,7 +6,6 @@ namespace CustomMath
     [CustomEditor(typeof(Vec3Tester))]
     public class Vec3TesterEditor : Editor
     {
-
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();

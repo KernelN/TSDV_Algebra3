@@ -227,6 +227,7 @@ GameObject:
   m_Component:
   - component: {fileID: 503643719}
   - component: {fileID: 503643720}
+  - component: {fileID: 503643721}
   m_Layer: 0
   m_Name: Tester
   m_TagString: Untagged
@@ -269,6 +270,26 @@ MonoBehaviour:
     y: 1
     z: 1
   optionalFloat: 6
+--- !u!114 &503643721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503643717}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00cd30feec88c44388f34571b7234fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputs:
+  - n: {x: -1.1, y: 7.79, z: 7}
+    d: -16.76
+  vec3s:
+  - {x: 1.7, y: 6.44, z: 7}
+  - {x: 2, y: 5.12, z: 1}
+  - {x: 4, y: 9, z: 1.57}
+  floats: []
 --- !u!1 &534669902
 GameObject:
   m_ObjectHideFlags: 0
