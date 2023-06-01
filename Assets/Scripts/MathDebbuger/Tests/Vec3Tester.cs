@@ -75,13 +75,13 @@ namespace CustomMath
         }
         public float Vec3CalcFloat()
         {
-            return Vec3.SqrMagnitude(inputs[0]);
-            //return Vec3.Distance(inputs[0], inputs[1]);
+            //return Vec3.SqrMagnitude(inputs[0]);
+            return Vec3.Angle(inputs[0], inputs[1]);
         }
         public float Vector3CalcFloat()
         {
-            return Vector3.SqrMagnitude(inputs[0]);
-            //return Vector3.Distance(inputs[0], inputs[1]);
+            //return Vector3.SqrMagnitude(inputs[0]);
+            return Vector3.Angle(inputs[0], inputs[1]);
         }
     }
 }

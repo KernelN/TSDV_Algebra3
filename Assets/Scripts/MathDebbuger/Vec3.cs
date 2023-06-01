@@ -141,6 +141,7 @@ namespace CustomMath
         {
             //https://www.cuemath.com/geometry/angle-between-vectors/
             //Using dot formula because has 3 less multiplications, so it's more efficient
+            
             //The formula is in radians, so it must be converted to degrees (credits to ChatGPT 3.5) 
             return Mathf.Acos(Vec3.Dot(from, to) / (from.magnitude * to.magnitude)) * Mathf.Rad2Deg;
         }
@@ -158,7 +159,7 @@ namespace CustomMath
         public static float Magnitude(Vec3 vector)
         {
             //https://www.cuemath.com/magnitude-of-a-vector-formula/ (the symbol for mag is |x|)
-            return Mathf.Sqrt(vector.magnitude);
+            return vector.magnitude;
         }
         /// <summary>
         /// Cross returns the perpendicular vector to the 2 input vectors
@@ -183,7 +184,7 @@ namespace CustomMath
             return (a - b).magnitude;
         }
         /// <summary>
-        /// Dot returns the sum of the product of the components of the 2 vectors
+        /// Dot returns: magA * magB * cos(angle) OR sum of product of each component
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -269,6 +270,8 @@ namespace CustomMath
         public static Vec3 Reflect(Vec3 inDirection, Vec3 inNormal) 
         {
             //http://www.sunshine2k.de/articles/coding/vectorreflection/vectorreflection.html
+            //OR
+            //??? la de Lean
             return inDirection - 2 * Dot(inDirection, inNormal) * inNormal;
         }
         public void Set(float newX, float newY, float newZ)
