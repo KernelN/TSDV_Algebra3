@@ -24156,7 +24156,7 @@ MonoBehaviour:
     y: 9.5
     z: 9.5
   gizmoRadius: 0.1
-  debugPointbyPos: {x: 0, y: 0, z: 3}
+  debugPointbyPos: {x: 0, y: 2.31, z: 12.01}
   gizmoColor: {r: 0.5943396, g: 0.5943396, b: 0.5943396, a: 1}
   gizmoDebugColor: {r: 1, g: 0, b: 0.9644861, a: 1}
   enableGizmos: 1
