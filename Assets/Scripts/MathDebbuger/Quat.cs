@@ -63,6 +63,10 @@ namespace CustomMath
 
         public static Quat operator*(Quat q, Quat q2)
         {
+            //complex multiplication ref
+            //https://upload.wikimedia.org/wikipedia/commons/9/90/Quaternion-multiplication-table.png
+            //https://i.ytimg.com/vi/3Ki14CsP_9k/maxresdefault.jpg
+            
             //Calculate Components
             float x = q.w * q2.x + q.x * q2.w + q.y * q2.z - q.z * q2.y;
             float y = q.w * q2.y - q.x * q2.z + q.y * q2.w + q.z * q2.x;
@@ -72,29 +76,24 @@ namespace CustomMath
             //Return Quaternion
             return new Quat(x, y, z, w);
         }
-        
         public static Vec3 operator*(Quat q, Vec3 v)
         {
             //https://gamedev.stackexchange.com/questions/28395/rotating-vector3-by-a-quaternion
             //Sincerely, I got the first part, and that the second one is more optimal
-            
+
             //Remove scalar from quaternion
             Vec3 qUnit = new Vec3(q.x, q.y, q.z);
             
-            //
-            Vec3 cross1 = Vec3.Cross(qUnit, v);
+            // Scale vector by quaternion scalar 
+            Vec3 scaledVec = q.w * v;
             
-            //
-            Vec3 cross2 = Vec3.Cross(qUnit, cross1);
-            
-            //
-            Vec3 scaledCross1 = cross1 * (2.0f * q.w);
-            
-            //
-            Vec3 scaledCross2 = cross2 * 2.0f;
+            // Get rotation axis
+            Vec3 cross1 = Vec3.Cross(qUnit, v); //perpendicular of v (direction) and qUnit (og rotation axis)
+            Vec3 cross2 = Vec3.Cross(qUnit, cross1); //perpendicular of cross1 (X direction) and qUnit (og rotation axis)
+            Vec3 axis = cross2 * 2.0f; //multiply by 2 to compensate for quaternion scalar 
 
             // Apply the rotation formula
-            Vec3 rotatedVector = v + scaledCross1 + scaledCross2;
+            Vec3 rotatedVector = v + scaledVec + axis;
 
             return rotatedVector;
         }
@@ -152,8 +151,26 @@ namespace CustomMath
         }
         public void ToAngleAxis(out float angle, out Vec3 axis)
         {
+            //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+            
             angle = 0;
             axis = Vec3.Zero;
+            return;
+            
+            Quat q = this;
+            if (q.w > 1 || q.w < epsilon)
+                q = Normalize(q);
+
+            float sqrt = Mathf.Sqrt(1 - q.w * q.w);
+
+            if (sqrt < epsilon)
+                axis = new Vec3(q.x, q.y, q.z);
+            else
+                axis = new Vec3(q.x, q.y, q.z) / sqrt;
+            
+            axis.Normalize();
+            
+            angle = 2 * Mathf.Acos(q.w) * Mathf.Rad2Deg;
         } //NOT IMPLEMENTED
         public override string ToString()
         {
@@ -421,7 +438,7 @@ namespace CustomMath
         }
 
         /// <summary>
-        /// Rotates a rotation from towards to.
+        /// Rotates a rotation from towards to, with a maximum of maxDegreesDelta.
         /// </summary>
         /// <param name="from"></param>
         /// <param name="to"></param>
@@ -429,9 +446,40 @@ namespace CustomMath
         /// <returns></returns>
         public static Quat RotateTowards(Quat from, Quat to, float maxDegreesDelta)
         {
+            Quat rotatedQ = from * to;
+            
+            if(Quat.Angle(from, to) > maxDegreesDelta)
+            {
+                rotatedQ = Quat.Lerp(from, rotatedQ, maxDegreesDelta/360);
+            }
+            
             return identity;
+            return rotatedQ;
         } //NOT IMPLEMENTED
-        
+
+        public static Quat Slerp(Quat a, Quat b, float t)
+        {
+            if (t < epsilon)
+                return Quat.Normalize(a);
+            else if(t > 1)
+                return Quat.Normalize(b);
+            
+            t = Mathf.Clamp01(t);
+            
+            // Ensure the quaternions are normalized
+            a = Quat.Normalize(a);
+            b = Quat.Normalize(b);
+
+            Quat diff = b * Quat.Inverse(a);
+            
+            diff = Quat.Normalize(diff);
+            
+            diff = Quat.Pow(diff, t);
+            
+            return identity;
+            return Quat.Normalize(a * a);
+        } //NOT IMPLEMENTED
+
         /// <summary>
         /// This is not public, as it is not in Unity default
         /// </summary>
@@ -462,6 +510,11 @@ namespace CustomMath
             q.w /= magnitude;
             
             //Return Quaternion
+            return q;
+        }
+
+        static Quat Pow(Quat q, float p)
+        {
             return q;
         }
 

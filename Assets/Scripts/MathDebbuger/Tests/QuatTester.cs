@@ -67,11 +67,13 @@ namespace CustomMath
 
         public Quaternion QuatCalcQ()
         {
-            //Q quat = Quat.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
+            Q quat= ((Quat)inputs[0]).normalized;
+            
+            //Q quat = Quat.Slerp(inputs[0], inputs[1], optionalFloat);
             
             //Q quat = Quat.Inverse(inputs[0]);
             
-            Q quat = Quat.LookRotation(optionalVec3s[0], optionalVec3s[1]);
+            //Q quat = Quat.LookRotation(optionalVec3s[0], optionalVec3s[1]);
             
             //Q quat = Quat.AngleAxis(optionalFloat, optionalVec3s[0]);
             
@@ -79,11 +81,13 @@ namespace CustomMath
         }
         public Quaternion QuaternionCalcQ()
         {
-            //Q quat = Quaternion.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
+            Q quat= ((Quaternion)inputs[0]).normalized;
+            
+            //Q quat = Quaternion.Slerp(inputs[0], inputs[1], optionalFloat);
 
             //Q quat = Quaternion.Inverse(inputs[0]);
             
-            Q quat = Quaternion.LookRotation(optionalVec3s[0], optionalVec3s[1]);
+            //Q quat = Quaternion.LookRotation(optionalVec3s[0], optionalVec3s[1]);
             
             //Q quat = Quaternion.AngleAxis(optionalFloat, optionalVec3s[0]);
             
@@ -91,21 +95,34 @@ namespace CustomMath
         }
         public Vec3 QuatCalcVec3()
         {
-            Vec3 v = (Quat)inputs[0] * optionalVec3s[0];
+            Vec3 v;// = ((Quat)inputs[0]) * optionalVec3s[0];
+            float angle;
+            ((Quat)inputs[0]).ToAngleAxis(out angle, out v);
             return v;
         }
         public Vec3 QuaternionCalcVec3()
         {
-            Vec3 v = (Quaternion)inputs[0] * optionalVec3s[0];
+            Vector3 v;// = ((Quaternion)inputs[0]) * optionalVec3s[0];
+            float angle;
+            ((Quaternion)inputs[0]).ToAngleAxis(out angle, out v);
             return v;
         }
         public float QuatCalcFloat()
         {
-            return Quat.Angle(inputs[0], inputs[1]);
+            Vec3 v;
+            float angle;
+            ((Quat)inputs[0]).ToAngleAxis(out angle, out v);
+            return angle;
+            //return Quat.Angle(inputs[0], inputs[1]);
         }
         public float QuaternionCalcFloat()
         {
-            return Quaternion.Angle(inputs[0], inputs[1]);;
+            Vector3 v;
+            float angle;
+            ((Quaternion)inputs[0]).ToAngleAxis(out angle, out v);
+            return angle;
+            
+            //return Quaternion.Angle(inputs[0], inputs[1]);;
         }
     }
 }
