@@ -34,25 +34,25 @@ namespace CustomMath
 
             #region equal operators
 
-            //Quaternion myQuat = new Q(0,0,0)
+            //Quaternion myQuat = new Q(0,0,0,0)
             public static implicit operator Quaternion(Q q)
             {
                 return new Quaternion(q.x, q.y, q.z, q.w);
             }
 
-            //Q myQuat = new Quaternion(0,0,0)
+            //Q myQuat = new Quaternion(0,0,0,0)
             public static implicit operator Q(Quaternion q)
             {
                 return new Q(q.x, q.y, q.z, q.w);
             }
 
-            //Quaternion myQuat = new Q(0,0,0)
+            //Quaternion myQuat = new Q(0,0,0,0)
             public static implicit operator Quat(Q q)
             {
                 return new Quat(q.x, q.y, q.z, q.w);
             }
 
-            //Q myQuat = new Quaternion(0,0,0)
+            //Q myQuat = new Quaternion(0,0,0,0)
             public static implicit operator Q(Quat q)
             {
                 return new Q(q.x, q.y, q.z, q.w);
@@ -62,23 +62,50 @@ namespace CustomMath
         }
 
         [SerializeField] Q[] inputs = new Q[1];
+        [SerializeField] Vec3[] optionalVec3s;
         [SerializeField] float optionalFloat;
 
         public Quaternion QuatCalcQ()
         {
-            return (Q)Quat.identity;
+            //Q quat = Quat.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
+            
+            //Q quat = Quat.Inverse(inputs[0]);
+            
+            Q quat = Quat.LookRotation(optionalVec3s[0], optionalVec3s[1]);
+            
+            //Q quat = Quat.AngleAxis(optionalFloat, optionalVec3s[0]);
+            
+            return quat;
         }
         public Quaternion QuaternionCalcQ()
         {
-            return Quaternion.identity;
+            //Q quat = Quaternion.LerpUnclamped(inputs[0], inputs[1], optionalFloat);
+
+            //Q quat = Quaternion.Inverse(inputs[0]);
+            
+            Q quat = Quaternion.LookRotation(optionalVec3s[0], optionalVec3s[1]);
+            
+            //Q quat = Quaternion.AngleAxis(optionalFloat, optionalVec3s[0]);
+            
+            return quat;
+        }
+        public Vec3 QuatCalcVec3()
+        {
+            Vec3 v = (Quat)inputs[0] * optionalVec3s[0];
+            return v;
+        }
+        public Vec3 QuaternionCalcVec3()
+        {
+            Vec3 v = (Quaternion)inputs[0] * optionalVec3s[0];
+            return v;
         }
         public float QuatCalcFloat()
         {
-            return Quat.identity.w;
+            return Quat.Angle(inputs[0], inputs[1]);
         }
         public float QuaternionCalcFloat()
         {
-            return Quaternion.identity.w;
+            return Quaternion.Angle(inputs[0], inputs[1]);;
         }
     }
 }
