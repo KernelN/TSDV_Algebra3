@@ -69,7 +69,7 @@ namespace CustomMath
         {
             //Q quat= ((Quat)inputs[0]).normalized;
             
-            Q quat = Quat.SlerpUnclamped(inputs[0], inputs[1], optionalFloat);
+            Q quat = Quat.RotateTowards(inputs[0], inputs[1], optionalFloat);
             
             //Q quat = Quat.Inverse(inputs[0]);
             
@@ -83,7 +83,7 @@ namespace CustomMath
         {
            // Q quat= ((Quaternion)inputs[0]).normalized;
             
-            Q quat = Quaternion.SlerpUnclamped(inputs[0], inputs[1], optionalFloat);
+            Q quat = Quaternion.RotateTowards(inputs[0], inputs[1], optionalFloat);
 
             //Q quat = Quaternion.Inverse(inputs[0]);
             

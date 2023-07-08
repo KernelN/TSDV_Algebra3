@@ -430,16 +430,23 @@ namespace CustomMath
         /// <returns></returns>
         public static Quat RotateTowards(Quat from, Quat to, float maxDegreesDelta)
         {
-            Quat rotatedQ = from * to;
-            
-            if(Quat.Angle(from, to) > maxDegreesDelta)
+            // Convert maxDegreesDelta to radians
+            //float maxRadiansDelta = Mathf.Deg2Rad * maxDegreesDelta;
+
+            // Calculate the angle between the quaternions
+            float angle = Quat.Angle(from, to);
+
+            // Check if the angle is within the maximum delta
+            if (angle <= maxDegreesDelta)
             {
-                rotatedQ = Quat.Lerp(from, rotatedQ, maxDegreesDelta/360);
+                // The quaternions are already within the desired range
+                return to;
             }
-            
-            return identity;
-            return rotatedQ;
-        } //NOT IMPLEMENTED
+
+            // Interpolate the rotation using Slerp
+            float t = maxDegreesDelta / angle;
+            return Quat.Slerp(from, to, t);
+        }
 
         /// <summary>
         /// Spherically interpolates between quaternions a and b by ratio t.
