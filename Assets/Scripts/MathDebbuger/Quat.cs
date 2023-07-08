@@ -20,7 +20,7 @@ namespace CustomMath
         public const float epsilon = 1e-05f;
         
         //Properties
-        public Vec3 eulerAngles { get { return Vec3.Zero; } } //NOT IMPLEMENTED
+        public Vec3 eulerAngles => Vec3.Zero; //Quat.EulerAngles(this); //NOT IMPLEMENTED
         public Quat normalized => Normalize(this);
 
         //Constructors
@@ -31,23 +31,6 @@ namespace CustomMath
             this.y = y;
             this.z = z;
             this.w = w;
-        }
-
-        void funcList()
-        {
-            //STATIC METHODS
-            //Quaternion.Angle(Quaternion.identity, Quaternion.identity); //https://docs.unity3d.com/ScriptReference/Quaternion.Angle.html
-            //Quaternion.AngleAxis(0, Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.AngleAxis.html
-            //Quaternion.Dot(Quaternion.identity, Quaternion.identity); //https://docs.unity3d.com/ScriptReference/Quaternion.Dot.html
-            //Quaternion.Euler(Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.Euler.html
-            //Quaternion.FromToRotation(Vec3.Zero, Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.FromToRotation.html
-            //Quaternion.Inverse(Quaternion.identity); //https://docs.unity3d.com/ScriptReference/Quaternion.Inverse.html
-            //Quaternion.Lerp(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.Lerp.html
-            //Quaternion.LerpUnclamped(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.LerpUnclamped.html
-            //Quaternion.LookRotation(Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.LookRotation.html
-            Quaternion.RotateTowards(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.RotateTowards.html
-            //Quaternion.Slerp(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.Slerp.html
-            //Quaternion.SlerpUnclamped(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.SlerpUnclamped.html
         }
 
         #region Operators
@@ -621,6 +604,115 @@ namespace CustomMath
             //angle *= Mathf.Deg2Rad;
             
             return Quat.AngleAxis(Mathf.Cos(angle), Mathf.Sin(angle) * axis);
+        }
+
+        /// <summary>
+        /// This is not public, as it is not in Unity default
+        /// </summary>
+        /// <param name="q"></param>
+        /// <returns></returns>
+        static Vec3 EulerAngles(Quat q)
+        {
+            // static float NormalizeAngle(float angle)
+            // {
+            //     while (angle < 0)
+            //         angle += 360f;
+            //
+            //     while (angle >= 360f)
+            //         angle -= 360f;
+            //
+            //     return angle;
+            // }
+            //
+            // // Convert quaternion to euler angles
+            // double pitch = Math.Atan2(2 * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+            // double yaw = Math.Asin(-2 * (q.x * q.z - q.w * q.y));
+            // double roll = Math.Atan2(2 * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+            //
+            // // Convert radians to degrees
+            // float pitchDeg = (float)((180.0 / Math.PI) * pitch);
+            // float yawDeg = (float)((180.0 / Math.PI) * yaw);
+            // float rollDeg = (float)((180.0 / Math.PI) * roll);
+            //
+            // pitchDeg = NormalizeAngle(pitchDeg);
+            // yawDeg = NormalizeAngle(yawDeg);
+            // rollDeg = NormalizeAngle(rollDeg);
+            //
+            // return new Vector3(pitchDeg, yawDeg, rollDeg);
+            
+            // //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+            
+            Vec3 euler = new Vec3();
+            
+            float sqw = q.w * q.w;
+            float sqx = q.x * q.x;
+            float sqy = q.y * q.y;
+            float sqz = q.z * q.z;
+            float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            
+            float test = q.x * q.y + q.z * q.w;
+            
+            //
+            
+            euler.z = Mathf.Atan2(2 * (q.x * q.y + q.z * q.w), sqx - sqy - sqz + sqw);
+            euler.y = Mathf.Asin(2 * test / unit);
+            euler.x = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw);
+            
+            euler *= Mathf.Rad2Deg;
+            
+            if(euler.x < 0)
+                euler.x += 360;
+            if (euler.y < 0)
+                euler.y += 360;
+            if (euler.z < 0)
+                euler.z += 360;
+            
+            return euler; //Works with only one component, breaks with more than one OR with values < 0 | >= 1
+
+            
+            // // singularity at north pole
+            // if (test > 0.499f * unit)
+            // {
+            //     euler.z = 2 * Mathf.Atan2(q.x, q.w);
+            //     euler.y = Mathf.PI / 2;
+            //     euler.x = 0;
+            //     return euler * Mathf.Rad2Deg;
+            // }
+            //
+            // // singularity at south pole
+            // if (test < -0.499f * unit)
+            // {
+            //     euler.z = -2 * Mathf.Atan2(q.x, q.w);
+            //     euler.y = -Mathf.PI / 2;
+            //     euler.x = 0;
+            //     return euler * Mathf.Rad2Deg;
+            // }
+
+            bool space;
+
+
+            // float test = q.x*q.y + q.z*q.w;
+            // if (test > 0.499) 
+            // { // singularity at north pole
+            //     euler.z = 2 * Mathf.Atan2(q.x,q.w);
+            //     euler.y = Mathf.PI/2;
+            //     euler.x = 0;
+            //     return euler;
+            // }
+            // if (test < -0.499) 
+            // { // singularity at south pole
+            //     euler.z = -2 * Mathf.Atan2(q.x,q.w);
+            //     euler.y = - Mathf.PI/2;
+            //     euler.x = 0;
+            //     return euler;
+            // }
+            // float sqx = q.x*q.x;
+            // float sqy = q.y*q.y;
+            // float sqz = q.z*q.z;
+            // euler.z = Mathf.Atan2(2*q.y*q.w-2*q.x*q.z , 1 - 2*sqy - 2*sqz);
+            // euler.y = Mathf.Asin(2*test);
+            // euler.x = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz);
+            // return euler;
         }
 
         #endregion

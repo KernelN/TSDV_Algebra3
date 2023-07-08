@@ -168,19 +168,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputs:
-  - x: 19.82
-    y: 1.03
-    z: 5.9
-    w: 0.16
-  - x: 0.43
-    y: 0.05
-    z: 0.97
-    w: 0.16
+  - x: 1
+    y: 0
+    z: 0
+    w: 1
   optionalVec3s:
-  - x: 1.14
-    y: 5.13
-    z: 1.8
-  - x: 11.73
-    y: -2.99
-    z: 0.21
-  optionalFloat: 0.2
+  - x: 0
+    y: 0
+    z: 90
+  optionalFloat: 0
