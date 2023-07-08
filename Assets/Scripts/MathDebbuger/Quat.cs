@@ -35,15 +35,6 @@ namespace CustomMath
 
         void funcList()
         {
-            //PUBLIC METHODS
-            Vector3 v = new Vec3(x,y,z);
-            Quaternion q = new Quaternion(x,y,z,w);
-            //q.Set(x,y,z,w); //https://docs.unity3d.com/ScriptReference/Quaternion.Set.html
-            //q.SetFromToRotation(Vec3.Zero, Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.SetFromToRotation.html
-            //q.SetLookRotation(Vec3.Zero, Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.SetLookRotation.html
-            q.ToAngleAxis(out x, out v); //https://docs.unity3d.com/ScriptReference/Quaternion.ToAngleAxis.html
-            //q.ToString(); //https://docs.unity3d.com/ScriptReference/Quaternion.ToString.html
-            
             //STATIC METHODS
             //Quaternion.Angle(Quaternion.identity, Quaternion.identity); //https://docs.unity3d.com/ScriptReference/Quaternion.Angle.html
             //Quaternion.AngleAxis(0, Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.AngleAxis.html
@@ -55,8 +46,8 @@ namespace CustomMath
             //Quaternion.LerpUnclamped(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.LerpUnclamped.html
             //Quaternion.LookRotation(Vec3.Zero); //https://docs.unity3d.com/ScriptReference/Quaternion.LookRotation.html
             Quaternion.RotateTowards(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.RotateTowards.html
-            Quaternion.Slerp(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.Slerp.html
-            Quaternion.SlerpUnclamped(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.SlerpUnclamped.html
+            //Quaternion.Slerp(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.Slerp.html
+            //Quaternion.SlerpUnclamped(Quaternion.identity, Quaternion.identity, 0); //https://docs.unity3d.com/ScriptReference/Quaternion.SlerpUnclamped.html
         }
 
         #region Operators
@@ -152,14 +143,8 @@ namespace CustomMath
         public void ToAngleAxis(out float angle, out Vec3 axis)
         {
             //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-            
-            angle = 0;
-            axis = Vec3.Zero;
-            return;
-            
-            Quat q = this;
-            if (q.w > 1 || q.w < epsilon)
-                q = Normalize(q);
+
+            Quat q = Normalize(this);
 
             float sqrt = Mathf.Sqrt(1 - q.w * q.w);
 
@@ -171,7 +156,7 @@ namespace CustomMath
             axis.Normalize();
             
             angle = 2 * Mathf.Acos(q.w) * Mathf.Rad2Deg;
-        } //NOT IMPLEMENTED
+        }
         public override string ToString()
         {
             return $"({x}, {y}, {z}, {w})";
@@ -389,12 +374,11 @@ namespace CustomMath
             // Second matrix column
             Vec3 rotatedUp = Vec3.Cross(forward, sideAxis);
             // Third matrix column
-            Vec3 lookAt = forward;
 
             // Sums of matrix main diagonal elements
-            float trace1 = 1.0f + sideAxis.x - rotatedUp.y - lookAt.z;
-            float trace2 = 1.0f - sideAxis.x + rotatedUp.y - lookAt.z;
-            float trace3 = 1.0f - sideAxis.x - rotatedUp.y + lookAt.z;
+            float trace1 = 1.0f + sideAxis.x - rotatedUp.y - forward.z;
+            float trace2 = 1.0f - sideAxis.x + rotatedUp.y - forward.z;
+            float trace3 = 1.0f - sideAxis.x - rotatedUp.y + forward.z;
 
             // If orthonormal vectors forms identity matrix, then return identity rotation
             if (trace1 + trace2 + trace3 < epsilon)
@@ -409,8 +393,8 @@ namespace CustomMath
                 return new Quat(
                     0.25f * s,
                     (rotatedUp.x + sideAxis.y) / s,
-                    (lookAt.x + sideAxis.z) / s,
-                    (rotatedUp.z - lookAt.y) / s);
+                    (forward.x + sideAxis.z) / s,
+                    (rotatedUp.z - forward.y) / s);
             }
             else if (trace2 + epsilon > trace1 && trace2 + epsilon > trace3)
             { 
@@ -418,15 +402,15 @@ namespace CustomMath
                 return new Quat(
                     (rotatedUp.x + sideAxis.y) / s,
                     0.25f * s,
-                    (lookAt.y + rotatedUp.z) / s,
-                    (lookAt.x - sideAxis.z) / s);
+                    (forward.y + rotatedUp.z) / s,
+                    (forward.x - sideAxis.z) / s);
             }
             else
             { 
                 float s = Mathf.Sqrt(trace3) * 2.0f;
                 return new Quat(
-                    (lookAt.x + sideAxis.z) / s,
-                    (lookAt.y + rotatedUp.z) / s,
+                    (forward.x + sideAxis.z) / s,
+                    (forward.y + rotatedUp.z) / s,
                     0.25f * s,
                     (sideAxis.y - rotatedUp.x) / s);
             }
@@ -457,29 +441,127 @@ namespace CustomMath
             return rotatedQ;
         } //NOT IMPLEMENTED
 
+        /// <summary>
+        /// Spherically interpolates between quaternions a and b by ratio t.
+        /// The parameter t is clamped to the range [0, 1].
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static Quat Slerp(Quat a, Quat b, float t)
         {
-            if (t < epsilon)
-                return Quat.Normalize(a);
-            else if(t > 1)
-                return Quat.Normalize(b);
+            //https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
             
-            t = Mathf.Clamp01(t);
-            
-            // Ensure the quaternions are normalized
-            a = Quat.Normalize(a);
-            b = Quat.Normalize(b);
+            if (t < epsilon) return a;
+            if(t > 1) return b;
 
-            Quat diff = b * Quat.Inverse(a);
+            // Calculate angle between them.
+            float abDot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
             
-            diff = Quat.Normalize(diff);
+            // Adjust the sign of b if necessary to take the shortest path
+            if (abDot < epsilon)
+            {
+                b = Quat.Inverse(b);
+                abDot = -abDot;
+            }
             
-            diff = Quat.Pow(diff, t);
+            // Check if the quaternions are close to each other
+            if (abDot > 0.9995f)
+            {
+                // Linearly interpolate if the quaternions are very close
+                return Lerp(a, b, t);
+            }
             
-            return identity;
-            return Quat.Normalize(a * a);
-        } //NOT IMPLEMENTED
+            // quaternion to return
+            Quat qm = new Quat();
+            
+            // Calculate temporary values.
+            float halfTheta = Mathf.Acos(abDot);
+            float sinHalfTheta = Mathf.Sqrt(1.0f - abDot*abDot);
+            
+            // if theta = 180 degrees then result is not fully defined
+            // we could rotate around any axis normal to qa or qb
+            if (Mathf.Abs(sinHalfTheta) < epsilon)
+            {
+                qm.w = (a.w * 0.5f + b.w * 0.5f);
+                qm.x = (a.x * 0.5f + b.x * 0.5f);
+                qm.y = (a.y * 0.5f + b.y * 0.5f);
+                qm.z = (a.z * 0.5f + b.z * 0.5f);
+                return qm;
+            }
+            
+            float ratioA = Mathf.Sin((1 - t) * halfTheta) / sinHalfTheta;
+            float ratioB = Mathf.Sin(t * halfTheta) / sinHalfTheta; 
+            
+            //calculate Quaternion.
+            qm.w = (a.w * ratioA + b.w * ratioB);
+            qm.x = (a.x * ratioA + b.x * ratioB);
+            qm.y = (a.y * ratioA + b.y * ratioB);
+            qm.z = (a.z * ratioA + b.z * ratioB);
+            
+            return qm;
+        }
 
+        /// <summary>
+        /// Spherically interpolates between a and b by t.
+        /// The parameter t is not clamped.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static Quat SlerpUnclamped(Quat a, Quat b, float t)
+        {
+            //https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
+            
+            // Calculate angle between them.
+            float abDot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+            
+            // Adjust the sign of b if necessary to take the shortest path
+            if (abDot < epsilon)
+            {
+                b = Quat.Inverse(b);
+                abDot = -abDot;
+            }
+            
+            // Check if the quaternions are close to each other
+            if (abDot > 0.9995f)
+            {
+                // Linearly interpolate if the quaternions are very close
+                return LerpUnclamped(a, b, t);
+            }
+            
+            // quaternion to return
+            Quat qm = new Quat();
+            
+            // Calculate temporary values.
+            float halfTheta = Mathf.Acos(abDot);
+            float sinHalfTheta = Mathf.Sqrt(1.0f - abDot*abDot);
+            
+            // if theta = 180 degrees then result is not fully defined
+            // we could rotate around any axis normal to qa or qb
+            if (Mathf.Abs(sinHalfTheta) < epsilon)
+            {
+                qm.w = (a.w * 0.5f + b.w * 0.5f);
+                qm.x = (a.x * 0.5f + b.x * 0.5f);
+                qm.y = (a.y * 0.5f + b.y * 0.5f);
+                qm.z = (a.z * 0.5f + b.z * 0.5f);
+                return qm;
+            }
+            
+            float ratioA = Mathf.Sin((1 - t) * halfTheta) / sinHalfTheta;
+            float ratioB = Mathf.Sin(t * halfTheta) / sinHalfTheta; 
+            
+            //calculate Quaternion.
+            qm.w = (a.w * ratioA + b.w * ratioB);
+            qm.x = (a.x * ratioA + b.x * ratioB);
+            qm.y = (a.y * ratioA + b.y * ratioB);
+            qm.z = (a.z * ratioA + b.z * ratioB);
+            
+            return qm;
+        }
+        
         /// <summary>
         /// This is not public, as it is not in Unity default
         /// </summary>
@@ -513,9 +595,25 @@ namespace CustomMath
             return q;
         }
 
+        /// <summary>
+        /// This is not public, as it is not in Unity default
+        /// </summary>
+        /// <param name="q"></param>
+        /// <returns></returns>
         static Quat Pow(Quat q, float p)
         {
-            return q;
+            Vec3 axis;
+            float angle;
+            
+            q.ToAngleAxis(out angle, out axis);
+            
+            angle *= p;
+
+            angle /= 2;
+            
+            //angle *= Mathf.Deg2Rad;
+            
+            return Quat.AngleAxis(Mathf.Cos(angle), Mathf.Sin(angle) * axis);
         }
 
         #endregion

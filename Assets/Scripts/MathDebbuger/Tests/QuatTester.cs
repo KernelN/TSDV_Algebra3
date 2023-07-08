@@ -67,9 +67,9 @@ namespace CustomMath
 
         public Quaternion QuatCalcQ()
         {
-            Q quat= ((Quat)inputs[0]).normalized;
+            //Q quat= ((Quat)inputs[0]).normalized;
             
-            //Q quat = Quat.Slerp(inputs[0], inputs[1], optionalFloat);
+            Q quat = Quat.SlerpUnclamped(inputs[0], inputs[1], optionalFloat);
             
             //Q quat = Quat.Inverse(inputs[0]);
             
@@ -81,9 +81,9 @@ namespace CustomMath
         }
         public Quaternion QuaternionCalcQ()
         {
-            Q quat= ((Quaternion)inputs[0]).normalized;
+           // Q quat= ((Quaternion)inputs[0]).normalized;
             
-            //Q quat = Quaternion.Slerp(inputs[0], inputs[1], optionalFloat);
+            Q quat = Quaternion.SlerpUnclamped(inputs[0], inputs[1], optionalFloat);
 
             //Q quat = Quaternion.Inverse(inputs[0]);
             
