@@ -7,10 +7,10 @@ namespace CustomMath
         [System.Serializable]
         public struct Q
         {
-            public float x;
-            public float y;
-            public float z;
-            public float w;
+            [Range(-1,1)] public float x;
+            [Range(-1,1)] public float y;
+            [Range(-1,1)] public float z;
+            [Range(-1,1)] public float w;
 
             #region constructors
 
@@ -126,7 +126,7 @@ namespace CustomMath
             
             //Temp
             Quat q = (Quat)inputs[0];
-            return 0.499f * (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+            return 0.5f * (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
             
             //return Quaternion.Angle(inputs[0], inputs[1]);;
         }

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace CustomMath
 {
+    [Serializable]
     public struct Quat : IEquatable<Quat>
     {
         //Variables
@@ -20,7 +21,7 @@ namespace CustomMath
         public const float epsilon = 1e-05f;
         
         //Properties
-        public Vec3 eulerAngles => Vec3.Zero; //Quat.EulerAngles(this); //NOT IMPLEMENTED
+        public Vec3 eulerAngles => Quat.EulerAngles(this);
         public Quat normalized => Normalize(this);
 
         //Constructors
@@ -613,106 +614,71 @@ namespace CustomMath
         /// <returns></returns>
         static Vec3 EulerAngles(Quat q)
         {
-            // static float NormalizeAngle(float angle)
-            // {
-            //     while (angle < 0)
-            //         angle += 360f;
-            //
-            //     while (angle >= 360f)
-            //         angle -= 360f;
-            //
-            //     return angle;
-            // }
-            //
-            // // Convert quaternion to euler angles
-            // double pitch = Math.Atan2(2 * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
-            // double yaw = Math.Asin(-2 * (q.x * q.z - q.w * q.y));
-            // double roll = Math.Atan2(2 * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
-            //
-            // // Convert radians to degrees
-            // float pitchDeg = (float)((180.0 / Math.PI) * pitch);
-            // float yawDeg = (float)((180.0 / Math.PI) * yaw);
-            // float rollDeg = (float)((180.0 / Math.PI) * roll);
-            //
-            // pitchDeg = NormalizeAngle(pitchDeg);
-            // yawDeg = NormalizeAngle(yawDeg);
-            // rollDeg = NormalizeAngle(rollDeg);
-            //
-            // return new Vector3(pitchDeg, yawDeg, rollDeg);
+            static double NormalizeRadians(double rad)
+            {
+                while(rad < 0)
+                    rad += 2 * Math.PI;
+                while (rad > 2 * Math.PI)
+                    rad -= 2 * Math.PI;
+                return rad;
+            }
             
             // //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
             
             Vec3 euler = new Vec3();
             
-            float sqw = q.w * q.w;
-            float sqx = q.x * q.x;
-            float sqy = q.y * q.y;
-            float sqz = q.z * q.z;
-            float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            double sqw = q.w * q.w;
+            double sqx = q.x * q.x;
+            double sqy = q.y * q.y;
+            double sqz = q.z * q.z;
+            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
             
-            float test = q.x * q.y + q.z * q.w;
+            //double test = q.x * q.y + q.z * q.w; //euclideanspace
+            double test = q.x * q.z - q.y * q.w; //me (this is the order unity uses, probably)
             
-            //
+            // singularity at north pole
+            //if (test > 0.499 * unit) //ES
+            if (test > 0.5 * unit) //me
+            {
+                euler.z = 2 * Mathf.Atan2(q.x, q.w);
+                euler.y = Mathf.PI / 2;
+                euler.x = 0;
+                return euler * Mathf.Rad2Deg;
+            }
             
-            euler.z = Mathf.Atan2(2 * (q.x * q.y + q.z * q.w), sqx - sqy - sqz + sqw);
-            euler.y = Mathf.Asin(2 * test / unit);
-            euler.x = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw);
+            // singularity at south pole
+            //if (test < -0.499 * unit) //ES
+            if (test < -0.5 * unit) //me
+            {
+                euler.z = -2 * Mathf.Atan2(q.x, q.w);
+                euler.y = -Mathf.PI / 2;
+                euler.x = 0;
+                return euler * Mathf.Rad2Deg;
+            }
             
-            euler *= Mathf.Rad2Deg;
+            //double z = Math.Atan2(2 * (q.x * q.y + q.z * q.w), sqx - sqy - sqz + sqw); //ES
+            double z = Math.Atan2(2 * q.z * q.w + 2 * q.x * q.y, -sqx + sqy - sqz + sqw); //me
             
-            if(euler.x < 0)
-                euler.x += 360;
-            if (euler.y < 0)
-                euler.y += 360;
-            if (euler.z < 0)
-                euler.z += 360;
+            //double y = Math.Asin(2 * test / unit); //euclideanspace
+            double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), -sqx - sqy + sqz + sqw); //me
+            //double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), 1 - 2 * (q.z * q.z + q.z * q.z)); //gpt
+            //double y = Math.Asin(-2 * (q.x * q.z - q.w * q.z)); //gpt
             
-            return euler; //Works with only one component, breaks with more than one OR with values < 0 | >= 1
+            double x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw); //ES
+            
+            z = NormalizeRadians(z);
+            y = NormalizeRadians(y);
+            x = NormalizeRadians(x);
+            
+            float zDeg = (float)((180.0 / Math.PI) * z);
+            float yDeg = (float)((180.0 / Math.PI) * y);
+            float xDeg = (float)((180.0 / Math.PI) * x);
+            
+            euler.z = zDeg;
+            euler.y = yDeg;
+            euler.x = xDeg;
 
-            
-            // // singularity at north pole
-            // if (test > 0.499f * unit)
-            // {
-            //     euler.z = 2 * Mathf.Atan2(q.x, q.w);
-            //     euler.y = Mathf.PI / 2;
-            //     euler.x = 0;
-            //     return euler * Mathf.Rad2Deg;
-            // }
-            //
-            // // singularity at south pole
-            // if (test < -0.499f * unit)
-            // {
-            //     euler.z = -2 * Mathf.Atan2(q.x, q.w);
-            //     euler.y = -Mathf.PI / 2;
-            //     euler.x = 0;
-            //     return euler * Mathf.Rad2Deg;
-            // }
-
-            bool space;
-
-
-            // float test = q.x*q.y + q.z*q.w;
-            // if (test > 0.499) 
-            // { // singularity at north pole
-            //     euler.z = 2 * Mathf.Atan2(q.x,q.w);
-            //     euler.y = Mathf.PI/2;
-            //     euler.x = 0;
-            //     return euler;
-            // }
-            // if (test < -0.499) 
-            // { // singularity at south pole
-            //     euler.z = -2 * Mathf.Atan2(q.x,q.w);
-            //     euler.y = - Mathf.PI/2;
-            //     euler.x = 0;
-            //     return euler;
-            // }
-            // float sqx = q.x*q.x;
-            // float sqy = q.y*q.y;
-            // float sqz = q.z*q.z;
-            // euler.z = Mathf.Atan2(2*q.y*q.w-2*q.x*q.z , 1 - 2*sqy - 2*sqz);
-            // euler.y = Mathf.Asin(2*test);
-            // euler.x = Mathf.Atan2(2 * q.x * q.w - 2 * q.y * q.z, 1 - 2 * sqx - 2 * sqz);
-            // return euler;
+            return euler; //Z breaks with more than one component
         }
 
         #endregion
