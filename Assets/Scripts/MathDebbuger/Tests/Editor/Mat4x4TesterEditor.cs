@@ -26,10 +26,13 @@ namespace CustomMath
             EditorGUILayout.LabelField("Matrix: ", myScript.MatrixCalcM().ToString(), matOp);
             EditorGUILayout.Separator();
             
+            GUILayoutOption[] plOp =
+            { GUILayout.MaxHeight(40.0f), GUILayout.MinHeight(10.0f) };
+            
             //Plane
             EditorGUILayout.LabelField("Plane");
-            EditorGUILayout.LabelField("Mat: ", myScript.MatCalcCPlane().ToString(), matOp);
-            EditorGUILayout.LabelField("Matrix: ", myScript.MatrixCalcCPlane().ToString(), matOp);
+            EditorGUILayout.LabelField("Mat: ", myScript.MatCalcCPlane().ToString(), plOp);
+            EditorGUILayout.LabelField("Matrix: ", myScript.MatrixCalcCPlane().ToString(), plOp);
             EditorGUILayout.Separator();
             
             //Quaternion
