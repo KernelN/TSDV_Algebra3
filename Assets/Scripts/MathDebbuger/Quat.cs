@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CustomMath
@@ -41,6 +39,8 @@ namespace CustomMath
             //complex multiplication ref
             //https://upload.wikimedia.org/wikipedia/commons/9/90/Quaternion-multiplication-table.png
             //https://i.ytimg.com/vi/3Ki14CsP_9k/maxresdefault.jpg
+            
+            //como cada complejo representa un eje, * entre sí da producto cruz
             
             //Calculate Components
             float x = q.w * q2.x + q.x * q2.w + q.y * q2.z - q.z * q2.y;
@@ -224,9 +224,19 @@ namespace CustomMath
         public static Quat Euler(float _x, float _y, float _z)
         {
             //Calculate Radians
-            float radX = Mathf.Deg2Rad * _x / 2;
+            // /2 because W must be divided among all axis | imaginary numbers 
+            // universally it would be "/ number of dimensions above 1"
+            float radX = Mathf.Deg2Rad * _x / 2;  
             float radY = Mathf.Deg2Rad * _y / 2;
             float radZ = Mathf.Deg2Rad * _z / 2;
+            
+            //https://www.mathsisfun.com/algebra/trig-sin-cos-tan-graphs.html
+            //https://www.mathsisfun.com/algebra/images/cosine-graph.svg
+            //as higher is each angle, lower will be w
+            
+            //https://www.mathsisfun.com/algebra/trig-sin-cos-tan-graphs.html
+            //https://www.mathsisfun.com/algebra/images/sine-graph.svg
+            //highest point of sine is 1, so highest point of x y z will be at 90 degrees (pi/2 radians)
             
             //Calculate Components
             Quat qX = new Quat(Mathf.Sin(radX), 0, 0, Mathf.Cos(radX));
@@ -350,6 +360,8 @@ namespace CustomMath
         {
             //https://stackoverflow.com/questions/52413464/look-at-quaternion-using-up-vector
             //Third answer, by nilpunch
+            //based on
+            //http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
             
             forward.Normalize();
     
@@ -357,7 +369,7 @@ namespace CustomMath
             Vec3 sideAxis = Vec3.Cross(upwards, forward).normalized;
             // Second matrix column
             Vec3 rotatedUp = Vec3.Cross(forward, sideAxis);
-            // Third matrix column
+            // Third matrix column: forward
 
             // Sums of matrix main diagonal elements
             float trace1 = 1.0f + sideAxis.x - rotatedUp.y - forward.z;
@@ -614,72 +626,205 @@ namespace CustomMath
         /// <returns></returns>
         static Vec3 EulerAngles(Quat q)
         {
-            static double NormalizeRadians(double rad)
-            {
-                while(rad < 0)
-                    rad += 2 * Math.PI;
-                while (rad > 2 * Math.PI)
-                    rad -= 2 * Math.PI;
-                return rad;
-            }
+            //UNITY Multiplication order is:
+            //(qY * qX) * qZ | X right, Y up, Z forward
+            //Heading = y axis, Attitude = x axis, Bank z axis
+            //(Heading*Attitude)*Bank
             
-            // //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
-            
-            Vec3 euler = new Vec3();
-            
-            double sqw = q.w * q.w;
-            double sqx = q.x * q.x;
-            double sqy = q.y * q.y;
-            double sqz = q.z * q.z;
-            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-            
-            //double test = q.x * q.y + q.z * q.w; //euclideanspace
-            double test = q.x * q.z - q.y * q.w; //me (this is the order unity uses, probably)
-            
-            // singularity at north pole
-            //if (test > 0.499 * unit) //ES
-            if (test > 0.5 * unit) //me
-            {
-                euler.z = 2 * Mathf.Atan2(q.x, q.w);
-                euler.y = Mathf.PI / 2;
-                euler.x = 0;
-                return euler * Mathf.Rad2Deg;
-            }
-            
-            // singularity at south pole
-            //if (test < -0.499 * unit) //ES
-            if (test < -0.5 * unit) //me
-            {
-                euler.z = -2 * Mathf.Atan2(q.x, q.w);
-                euler.y = -Mathf.PI / 2;
-                euler.x = 0;
-                return euler * Mathf.Rad2Deg;
-            }
-            
-            //double z = Math.Atan2(2 * (q.x * q.y + q.z * q.w), sqx - sqy - sqz + sqw); //ES
-            double z = Math.Atan2(2 * q.z * q.w + 2 * q.x * q.y, -sqx + sqy - sqz + sqw); //me
-            
-            //double y = Math.Asin(2 * test / unit); //euclideanspace
-            double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), -sqx - sqy + sqz + sqw); //me
-            //double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), 1 - 2 * (q.z * q.z + q.z * q.z)); //gpt
-            //double y = Math.Asin(-2 * (q.x * q.z - q.w * q.z)); //gpt
-            
-            double x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw); //ES
-            
-            z = NormalizeRadians(z);
-            y = NormalizeRadians(y);
-            x = NormalizeRadians(x);
-            
-            float zDeg = (float)((180.0 / Math.PI) * z);
-            float yDeg = (float)((180.0 / Math.PI) * y);
-            float xDeg = (float)((180.0 / Math.PI) * x);
-            
-            euler.z = zDeg;
-            euler.y = yDeg;
-            euler.x = xDeg;
+            //EUCLIDEAN SPACE 
+            //Heading = y axis, Attitude = z axis, Bank x axis
+            //(Heading*Attitude)*Bank
 
-            return euler; //Z breaks with more than one component
-        }
+            #region MyFrankenstein
+            // static double NormalizeRadians(double rad)
+            // {
+            //     while(rad < 0)
+            //         rad += 2 * Math.PI;
+            //     while (rad > 2 * Math.PI)
+            //         rad -= 2 * Math.PI;
+            //     return rad;
+            // }
+            //
+            // // //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+            // //converts a quaternion in 6 triangles
+            //
+            // Vec3 euler = new Vec3();
+            //
+            // double sqw = q.w * q.w;
+            // double sqx = q.x * q.x;
+            // double sqy = q.y * q.y;
+            // double sqz = q.z * q.z;
+            // //double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            //
+            // //double test = q.x * q.y + q.z * q.w; //euclideanspace
+            // //double test = q.x * q.z - q.y * q.w; //me (this is the order unity uses, probably)
+            //
+            // // singularity at north pole
+            // //if (test > 0.499 * unit) //ES
+            // // if (test > 0.5 * unit) //me
+            // // {
+            // //     euler.z = 2 * Mathf.Atan2(q.x, q.w);
+            // //     euler.y = Mathf.PI / 2;
+            // //     euler.x = 0;
+            // //     return euler * Mathf.Rad2Deg;
+            // // }
+            //
+            // // singularity at south pole
+            // //if (test < -0.499 * unit) //ES
+            // // if (test < -0.5 * unit) //me
+            // // {
+            // //     euler.z = -2 * Mathf.Atan2(q.x, q.w);
+            // //     euler.y = -Mathf.PI / 2;
+            // //     euler.x = 0;
+            // //     return euler * Mathf.Rad2Deg;
+            // // }
+            //
+            // //double z = Math.Atan2(2 * (q.x * q.y + q.z * q.w), sqx - sqy - sqz + sqw); //ES
+            // //double z = Math.Atan2(2 * q.z * q.w + 2 * q.x * q.y, -sqx + sqy - sqz + sqw); //me
+            // double z = Math.Atan2(2 * q.z * q.w + 2 * q.x * q.y, -sqx + sqy - sqz + sqw); //me 2
+            //
+            // //double y = Math.Asin(2 * test / unit); //euclideanspace
+            // double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), -sqx - sqy + sqz + sqw); //me
+            // //double y = Math.Atan2(2 * (q.y * q.w + q.x * q.z), 1 - 2 * (q.z * q.z + q.z * q.z)); //gpt
+            // //double y = Math.Asin(-2 * (q.x * q.z - q.w * q.z)); //gpt
+            //
+            // //double x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw); //ES
+            // double x = Math.Atan2(2 * q.x * q.w - 2 * q.y * q.z, -sqx + sqy - sqz + sqw); //me
+            //
+            // // z = NormalizeRadians(z);
+            // // y = NormalizeRadians(y);
+            // // x = NormalizeRadians(x);
+            // //
+            // // float zDeg = (float)((180.0 / Math.PI) * z);
+            // // float yDeg = (float)((180.0 / Math.PI) * y);
+            // // float xDeg = (float)((180.0 / Math.PI) * x);
+            //
+            // float zDeg = Mathf.Rad2Deg * (float)z;
+            // float yDeg = Mathf.Rad2Deg * (float)y;
+            // float xDeg = Mathf.Rad2Deg * (float)x;
+            //
+            // euler.z = zDeg; //rotation is inverted while manipulating w
+            // euler.y = yDeg;
+            // euler.x = xDeg; //rotation is inverted while manipulating w
+            //
+            // return euler; //breaks with more than one component
+            #endregion
+            
+            //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+            #region EuclideanSpaceNonNormalized
+            Vec3 euler;
+            
+            double sqw = q.w*q.w;
+            double sqx = q.x*q.x;
+            double sqy = q.y*q.y;
+            double sqz = q.z*q.z;
+            
+            //double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            double unit = sqz + sqy + sqx + sqw; // if normalised is one, otherwise is correction factor
+            //double test = q.x*q.y + q.z*q.w;
+            double test = q.z*q.y + q.x*q.w;
+            
+            if (test > 0.5*unit) { // singularity at north pole
+                // heading = 2 * atan2(q.x,q.w);
+                // attitude = Math.PI/2;
+                // bank = 0;
+                euler.y = 2 * (float)Math.Atan2(q.z,q.w);
+                euler.x = Mathf.PI/2;
+                euler.z = 0;
+                return euler * Mathf.Rad2Deg;
+            }
+            if (test < -0.5*unit) { // singularity at south pole
+                // heading = -2 * atan2(q.x,q.w);
+                // attitude = -Math.PI/2;
+                // bank = 0;
+                euler.y = -2 * (float)Math.Atan2(q.z,q.w);
+                euler.x = -Mathf.PI/2;
+                euler.z = 0;
+                return euler * Mathf.Rad2Deg;
+            }
+            // heading = atan2(2*q.y*q.w-2*q.x*q.z , sqx - sqy - sqz + sqw);
+            // attitude = asin(2*test/unit);
+            // bank = atan2(2*q.x*q.w-2*q.y*q.z , -sqx + sqy - sqz + sqw);
+            euler.y = (float)Math.Atan2(2*q.y*q.w-2*q.z*q.x , sqz - sqy - sqx + sqw);
+            euler.x = (float)Math.Asin(2*test/unit);
+            euler.z = (float)Math.Atan2(2*q.z*q.w-2*q.y*q.x , -sqz + sqy - sqx + sqw);
+            
+            return euler * Mathf.Rad2Deg;
+            #endregion
+
+            //https://stackoverflow.com/questions/12088610/conversion-between-euler-quaternion-like-in-unity3d-engine
+            #region StackOverflow
+
+            // static float NormalizeAngle (float angle)
+            // {
+            //     while (angle>360)
+            //         angle -= 360;
+            //     while (angle<0)
+            //         angle += 360;
+            //     return angle;
+            // }
+            //
+            // static Vector3 NormalizeAngles (Vector3 angles)
+            // {
+            //     angles.x = NormalizeAngle (angles.x);
+            //     angles.y = NormalizeAngle (angles.y);
+            //     angles.z = NormalizeAngle (angles.z);
+            //     return angles;
+            // }
+            //
+            // float sqw = q1.w * q1.w;
+            // float sqx = q1.x * q1.x;
+            // float sqy = q1.y * q1.y;
+            // float sqz = q1.z * q1.z;
+            // float unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            // float test = q1.x * q1.w - q1.y * q1.z;
+            // Vector3 v;
+            //
+            // if (test>0.4995f*unit) { // singularity at north pole
+            //     v.y = 2f * Mathf.Atan2 (q1.y, q1.x);
+            //     v.x = Mathf.PI / 2;
+            //     v.z = 0;
+            //     return NormalizeAngles (v * Mathf.Rad2Deg);
+            // }
+            // if (test<-0.4995f*unit) { // singularity at south pole
+            //     v.y = -2f * Mathf.Atan2 (q1.y, q1.x);
+            //     v.x = -Mathf.PI / 2;
+            //     v.z = 0;
+            //     return NormalizeAngles (v * Mathf.Rad2Deg);
+            // }
+            // Quaternion q = new Quaternion (q1.w, q1.z, q1.x, q1.y);
+            // v.y = (float)Math.Atan2 (2f * q.x * q.w + 2f * q.y * q.z, 1 - 2f * (q.z * q.z + q.w * q.w));     // Yaw
+            // v.x = (float)Math.Asin (2f * (q.x * q.z - q.w * q.y));                             // Pitch
+            // v.z = (float)Math.Atan2 (2f * q.x * q.y + 2f * q.z * q.w, 1 - 2f * (q.y * q.y + q.z * q.z));      // Roll
+            // return NormalizeAngles (v * Mathf.Rad2Deg);
+
+            #endregion
+
+            //https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
+            #region Wikipedia
+
+            // Vec3 angles;
+            // // roll (x-axis rotation)
+            // float sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
+            // float cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+            // //angles.x = Mathf.Atan2(sinr_cosp, cosr_cosp);
+            // angles.x = Mathf.Atan2(sinr_cosp, cosr_cosp) - Mathf.PI / 2;
+            //
+            // // pitch (z-axis rotation)
+            // float sinp = Mathf.Sqrt(1 + 2 * (q.w * q.y - q.x * q.z));
+            // float cosp = Mathf.Sqrt(1 - 2 * (q.w * q.y - q.x * q.z));
+            // //angles.z = 2 * Mathf.Atan2(sinp, cosp) - Mathf.PI / 2;
+            // angles.z = 2 * Mathf.Atan2(sinp, cosp);
+            //
+            // // yaw (y-axis rotation)
+            // float siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+            // float cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+            // angles.y = Mathf.Atan2(siny_cosp, cosy_cosp);
+            // return angles * Mathf.Rad2Deg;
+
+            #endregion
+
+        } //WIP
 
         #endregion
     }

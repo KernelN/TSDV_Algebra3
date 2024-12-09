@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace CustomMath
@@ -133,6 +131,7 @@ namespace CustomMath
             //(assuming it's the same logic of 3x3, and testing on tester)
             //m01 = row 0 column 1
             
+            //remplazar por mat * vec4 (4 veces) porque si no lean me mata
             Mat4x4 m4x4;
             m4x4.m00 =  lhs.m00 *  rhs.m00 +  lhs.m01 *  rhs.m10 +  lhs.m02 *  rhs.m20 +  lhs.m03 *  rhs.m30;
             m4x4.m01 =  lhs.m00 *  rhs.m01 +  lhs.m01 *  rhs.m11 +  lhs.m02 *  rhs.m21 +  lhs.m03 *  rhs.m31;
@@ -373,19 +372,26 @@ namespace CustomMath
         public static Mat4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
         {
             //https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/orthographic-projection-matrix.html
+            //This engine runs on right major notation
+            //Unity and openGL use column major notation, so it's manually transposed (to avoid transpose of 0 values)
             
             Mat4x4 m = new Mat4x4();
             
+            // 2 / (right - left) is a way to clamp the values between -1 and 1
             m[0,0] = 2 / (right - left); 
             m[0,1] = 0; 
             m[0,2] = 0; 
             m[0,3] = -(right + left) / (right - left);
  
+            //same with top and bottom
             m[1,0] = 0; 
             m[1,1] = 2 / (top - bottom); 
             m[1,2] = -(top + bottom) / (top - bottom);
             m[1,3] = 0; 
  
+            //This TOO clamps the values between -1 and 1
+            //But as how unity works, it could clamp the values between 0 and 1
+            //Review with more time
             m[2,0] = 0; 
             m[2,1] = 0; 
             m[2,2] = -2 / (zFar - zNear); 
@@ -401,7 +407,10 @@ namespace CustomMath
         public static Mat4x4 Perspective(float fov, float aspect, float zNear, float zFar)
         {
             //https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html
+            //This engine runs on right major notation
+            //Unity and openGL use column major notation, so it's manually transposed (to avoid transpose of 0 values)
             
+            //left & bottom are the opposite of right and top, so they're just top & right * -1
             float scale = Mathf.Tan(fov * 0.5f * Mathf.PI / 180) * zNear;
             float right = aspect * scale;
             float left = -right;
@@ -746,7 +755,7 @@ namespace CustomMath
         /* Properties            
         decomposeProjection //https://docs.unity3d.com/ScriptReference/Matrix4x4-decomposeProjection.html
         ***determinant //https://docs.unity3d.com/ScriptReference/Matrix4x4-determinant.html
-        **inverse	//https://docs.unity3d.com/ScriptReference/Matrix4x4-inverse.html
+        ***inverse	//https://docs.unity3d.com/ScriptReference/Matrix4x4-inverse.html
         ***isIdentity	//https://docs.unity3d.com/ScriptReference/Matrix4x4-isIdentity.html
         ***lossyScale	//https://docs.unity3d.com/ScriptReference/Matrix4x4-lossyScale.html
         rotation    //https://docs.unity3d.com/ScriptReference/Matrix4x4-rotation.html
