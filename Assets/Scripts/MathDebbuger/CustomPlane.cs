@@ -83,10 +83,34 @@ namespace CustomMath
         {
             return GetDistanceToPoint(point) > Mathf.Epsilon;
         }
-        
+        /// <summary>
+        /// Intersects a ray with the plane.
+        /// 
+        /// If the ray is parallel to the plane,
+        /// function returns false and sets enter to zero.
+        /// 
+        /// If the ray is pointing in the opposite direction than the plane,
+        /// function returns false and sets enter to the distance along the ray
+        /// (negative value).
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="enter">the distance along the ray</param>
+        /// <returns></returns>
         public bool Raycast(Ray ray, out float enter)
         {
-            throw new NotImplementedException();
+            float dirNor = Vec3.Dot(ray.direction, normal);
+            float orgNor = -Vec3.Dot(ray.origin, normal) - distance;
+            
+            //If ray is orthogonal to the normal of the plane,
+                //it will never touch the plane
+            if (dirNor > Mathf.Epsilon || dirNor < -Mathf.Epsilon)
+            {
+                enter = 0;
+                return false;
+            }
+            
+            enter = orgNor / dirNor;
+            return enter > Mathf.Epsilon;
         }
         
         public bool SameSide(Vec3 inPt0, Vec3 inPt1)

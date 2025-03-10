@@ -14,7 +14,7 @@ namespace CustomMath
             
             //Title
             EditorGUILayout.Separator();
-            EditorGUILayout.LabelField("Results");
+            EditorGUILayout.LabelField("Results", EditorStyles.whiteLargeLabel);
             
             //Quaternion
             EditorGUILayout.LabelField("Quat: ", myScript.QuatCalcQ().ToString());

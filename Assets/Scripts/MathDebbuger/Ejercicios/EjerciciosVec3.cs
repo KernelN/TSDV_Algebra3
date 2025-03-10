@@ -102,7 +102,8 @@ public class EjerciciosVec3 : MonoBehaviour
                 resultados[6] = Vec3.Project(inputs[0], inputs[1]);
                 break;
             case Ejercicio.Ocho:
-                resultados[7] = Vec3.Zero;
+                Vec3 r8 = Vec3.Max(inputs[0], inputs[1]);
+                resultados[7] = (inputs[0] + inputs[1]).normalized * r8.magnitude;
                 break;
             case Ejercicio.Nueve:
                 resultados[8] = Vec3.Reflect(inputs[0], inputs[1].normalized);

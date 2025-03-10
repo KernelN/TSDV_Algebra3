@@ -14,7 +14,9 @@ namespace CustomMath
         //get {} is calculated every time the values change, instead of lambda. Think later best/optimal option
         //ref: https://www.tabsoverspaces.com/233844-back-to-csharp-basics-difference-between-and-get-for-properties
         public float sqrMagnitude { get { return x * x + y * y + z * z; } }
-        public Vec3 normalized { get { return this / magnitude; } } 
+        //Make sure magnitude is never 0
+        //Unity sends Vector3.right, but it's just a safe guard
+        public Vec3 normalized { get { return this / (magnitude == 0 ? 1 : magnitude); } } 
         public float magnitude { get { return Mathf.Sqrt(sqrMagnitude); } } 
 
         #endregion
@@ -171,6 +173,9 @@ namespace CustomMath
         public static Vec3 Cross(Vec3 a, Vec3 b)
         {
             //https://www.cuemath.com/geometry/cross-product/
+            //Es una multiplicacion matricial (Xi, Yj, Zk)
+            //para conseguir el nuevo X se multiplica el Ay * Bz (j*k=i) y se resta By * Az
+            //Y así con los otros 2 componentes
             return new Vec3(a.y * b.z - a.z * b.y, -(a.x * b.z - a.z * b.x), a.x * b.y - a.y * b.x);
         }
         public static float Distance(Vec3 a, Vec3 b)
@@ -184,7 +189,8 @@ namespace CustomMath
             return (a - b).magnitude;
         }
         /// <summary>
-        /// Dot returns: magA * magB * cos(angle) OR sum of product of each component
+        /// Dot returns: magA * magB * cos(angle) OR sum of product of each component.
+        /// It returns 0 if the vectors are orthogonal / perpendicular
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -257,6 +263,13 @@ namespace CustomMath
         public static Vec3 Project(Vec3 vector, Vec3 onNormal) 
         {
             //https://www.cuemath.com/geometry/projection-vector/
+            //Dot(v, oN) / oN.magnitude devuelve:
+            //Magnitud de v * cos del angulo entre los 2
+            //Eso sería la magnitud del vector proyectado
+            //cos(d) = cat adj / hip = Result/vector
+            //cos(d) = Result/vector
+            //Result = cos(d) * vector
+            
             //Projection gives a scalar, multiply that scalar by the normal to get the projected vector 
             return (Dot(vector, onNormal) / onNormal.magnitude) * onNormal.normalized;
         }

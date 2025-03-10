@@ -17,7 +17,7 @@ namespace CustomMath
         public Mat4x4 inverse => GetInverse(this);
         public bool isIdentity => this == identity;
         public Vec3 lossyScale => GetLossyScale(this);
-        public Quat rotation => GetRotation(this); //NOT IMPLEMENTED, WAITING FOR ORTHOGONALIZATION
+        public Quat rotation => GetRotation(this); 
         public float this[int index]
         { 
           get
@@ -366,9 +366,13 @@ namespace CustomMath
         //Public Methods
         public static Mat4x4 LookAt(Vec3 from, Vec3 to, Vec3 up)
         {
+            //conseguir vector posicion relativa / from >> to
+            //obtener angulos correspondientes a las coordenadas esfericas
+            //definir rotacion en cada eje para apuntar en la direccion del vector from>to
+            
             Quat rotation = Quat.LookRotation(to - from, up); //this has to be cheating, Lean will kill me
             return Rotate(rotation);
-        }
+        } //TODO: NOT WORKING
         public static Mat4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
         {
             //https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/orthographic-projection-matrix.html
