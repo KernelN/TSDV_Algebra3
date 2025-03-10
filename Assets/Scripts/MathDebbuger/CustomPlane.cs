@@ -9,8 +9,8 @@ namespace CustomMath
         #region Properties
 
         public float distance;
-        public CustomPlane flipped => new(-normal, distance);
         public Vec3 normal;
+        public CustomPlane flipped => new(-normal, distance);
 
         #endregion
 
@@ -63,8 +63,7 @@ namespace CustomMath
         public Vec3 ClosestPointOnPlane(Vec3 point)
         {
             //Multiply distanceToPoint by normal to get vector from plane to point
-            //substract point to that calc to get the point in the plane
-            //credits to ChatGPT
+            //substract point to get the point in the plane
             return point - GetDistanceToPoint(point) * normal;
         }
         
@@ -76,41 +75,16 @@ namespace CustomMath
         public float GetDistanceToPoint(Vec3 point)
         {
             //https://www.cuemath.com/geometry/distance-between-point-and-plane/
+            
+            //Projects the point onto the normal (.Dot())
+            //Then adds the distance from the plane to the axis center (+ distance)
+            //Then normalize the result (/ normal) (this usually would be 1)
             return (Vec3.Dot(normal, point) + distance) / normal.magnitude;
         }
 
         public bool GetSide(Vec3 point)
         {
             return GetDistanceToPoint(point) > Mathf.Epsilon;
-        }
-        /// <summary>
-        /// Intersects a ray with the plane.
-        /// 
-        /// If the ray is parallel to the plane,
-        /// function returns false and sets enter to zero.
-        /// 
-        /// If the ray is pointing in the opposite direction than the plane,
-        /// function returns false and sets enter to the distance along the ray
-        /// (negative value).
-        /// </summary>
-        /// <param name="ray"></param>
-        /// <param name="enter">the distance along the ray</param>
-        /// <returns></returns>
-        public bool Raycast(Ray ray, out float enter)
-        {
-            float dirNor = Vec3.Dot(ray.direction, normal);
-            float orgNor = -Vec3.Dot(ray.origin, normal) - distance;
-            
-            //If ray is orthogonal to the normal of the plane,
-                //it will never touch the plane
-            if (dirNor > Mathf.Epsilon || dirNor < -Mathf.Epsilon)
-            {
-                enter = 0;
-                return false;
-            }
-            
-            enter = orgNor / dirNor;
-            return enter > Mathf.Epsilon;
         }
         
         public bool SameSide(Vec3 inPt0, Vec3 inPt1)
@@ -134,11 +108,11 @@ namespace CustomMath
         {
             //This is similar to the projection of the normal into the translation
             //It gives the distance from the old point to the new point
-            //credits to ChatGPT, check cuemath projection for reference
             //https://www.cuemath.com/geometry/projection-vector/
             
-            //No te voy a mentir lean, esta si que no la entiendo del todo, pero comprobe con el tester y funciona
-            plane.distance += Vector3.Dot(plane.normal, translation);
+            //Adds the combination of the factor of each component of
+                //the normal and the translation
+            plane.distance += Vec3.Dot(plane.normal, translation);
         }
         #endregion
 

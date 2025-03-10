@@ -502,17 +502,22 @@ namespace CustomMath
             float zz      = q.z * q.z;
             float zw      = q.z * q.w;
 
-            m.m00  = 1 - 2 * ( yy + zz );
-            m.m01  =     2 * ( xy - zw );
+            //Multiply by 2 to change from quaternion values to euler values
+            
+            //X
+            m.m00  = 1 - 2 * ( yy + zz ); //removes scale X // parallels cos(angleY) * x + sin(angleY) * z
+            m.m01  =     2 * ( xy - zw ); //parallels 
             m.m02  =     2 * ( xz + yw );
 
+            //Y
             m.m10  =     2 * ( xy + zw );
-            m.m11  = 1 - 2 * ( xx + zz );
+            m.m11  = 1 - 2 * ( xx + zz ); //removes scale Y
             m.m12  =     2 * ( yz - xw );
 
+            //Z
             m.m20  =     2 * ( xz - yw );
-            m.m21  =     2 * ( yz + xw );
-            m.m22 = 1 - 2 * ( xx + yy );
+            m.m21  =     2 * ( yz + xw ); 
+            m.m22  = 1 - 2 * ( xx + yy ); //removes scale Z
 
             m.m03  = m.m13 = m.m23 = m.m30 = m.m31 = m.m32 = 0;
             m.m33 = 1;

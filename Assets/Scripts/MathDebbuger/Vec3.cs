@@ -255,7 +255,8 @@ namespace CustomMath
             return vector.sqrMagnitude;
         }
         /// <summary>
-        /// Projects a vector onto another vector (expands normal vector until it reaches vector "height")
+        /// Projects a vector onto another vector
+        /// (expands normal vector until it reaches vector "height")
         /// </summary>
         /// <param name="vector"></param>
         /// <param name="onNormal"></param>
@@ -284,7 +285,9 @@ namespace CustomMath
         {
             //http://www.sunshine2k.de/articles/coding/vectorreflection/vectorreflection.html
             //OR
-            //??? la de Lean
+            // la de Lean
+                //normal * 2 * producto punto queda el doble de la normal * escalar
+                //Se resta offset y se llega al resultado
             return inDirection - 2 * Dot(inDirection, inNormal) * inNormal;
         }
         public void Set(float newX, float newY, float newZ)

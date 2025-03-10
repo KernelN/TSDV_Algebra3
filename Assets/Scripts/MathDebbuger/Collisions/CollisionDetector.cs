@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -96,6 +95,9 @@ namespace CustomMath
         }
         public bool IsPointInside(Vec3 point)
         {
+            //Using the current forumlas, forward is the only direction that works
+                //as either right or up would run into cases where two points are
+                    //only distanced by Z
             Vec3 dir = Vec3.Forward * m.bounds.size.z * 1.1f;
             List<int> collidedPlanes = new List<int>();
             int facesCollided = 0;
@@ -152,11 +154,16 @@ namespace CustomMath
         {
             collPoint = Vec3.Zero;
 
+            //distance del rayo proyectada sobre la normal
             float denom = Vec3.Dot(plane.normal, rDist);
 
             //If denom is 0, the ray is parallel to the plane
             if (Mathf.Abs(denom) <= Vec3.epsilon) return false;
 
+            //plane.normal * plane.distance = point in plane
+            //- rayOrigin = offseted point
+            //Dot(offsetedPoint, plane.normal) = proyectando offset sobre la normal
+            // / denom = distancia entre el offset y el punto del plano
             float t = Vec3.Dot(plane.normal * plane.distance - rOrigin, plane.normal) / denom;
             if (t < Vec3.epsilon) return false;
 

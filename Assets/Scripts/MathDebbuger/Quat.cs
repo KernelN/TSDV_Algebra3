@@ -17,7 +17,7 @@ namespace CustomMath
 
         //Constants
         public const float epsilon = 1e-05f;
-        
+
         //Properties
         public Vec3 eulerAngles => Quat.EulerAngles(this);
         public Quat normalized => Normalize(this);
@@ -480,12 +480,12 @@ namespace CustomMath
             Quat qm = new Quat();
             
             // Calculate temporary values.
-            float halfTheta = Mathf.Acos(abDot);
-            float sinHalfTheta = Mathf.Sqrt(1.0f - abDot*abDot);
+            float halfAngle = Mathf.Acos(abDot);
+            float sinHalfAngle = Mathf.Sqrt(1.0f - abDot*abDot);
             
             // if theta = 180 degrees then result is not fully defined
             // we could rotate around any axis normal to qa or qb
-            if (Mathf.Abs(sinHalfTheta) < epsilon)
+            if (Mathf.Abs(sinHalfAngle) < epsilon)
             {
                 qm.w = (a.w * 0.5f + b.w * 0.5f);
                 qm.x = (a.x * 0.5f + b.x * 0.5f);
@@ -494,8 +494,8 @@ namespace CustomMath
                 return qm;
             }
             
-            float ratioA = Mathf.Sin((1 - t) * halfTheta) / sinHalfTheta;
-            float ratioB = Mathf.Sin(t * halfTheta) / sinHalfTheta; 
+            float ratioA = Mathf.Sin((1 - t) * halfAngle) / sinHalfAngle;
+            float ratioB = Mathf.Sin(t * halfAngle) / sinHalfAngle; 
             
             //calculate Quaternion.
             qm.w = (a.w * ratioA + b.w * ratioB);
