@@ -214,11 +214,11 @@ namespace CustomMath
         
         /// <summary>
         /// Transforms a position by this matrix (generic).
-        /// Returns a position v transformed by the current fully arbitrary matrix.
+        /// Returns a position 'point' transformed by the current fully arbitrary matrix.
         /// If the matrix is a regular 3D transformation matrix, it is much faster to use MultiplyPoint3x4 instead.
         /// MultiplyPoint is slower, but can handle projective transformations as well.
         /// </summary>
-        /// <param name="point"></param>
+        /// <param name="point">the position to be transformed</param>
         /// <returns></returns>
         public Vec3 MultiplyPoint(Vec3 point)
         {
@@ -229,11 +229,11 @@ namespace CustomMath
         
         /// <summary>
         /// Transforms a position by this matrix (fast).
-        /// Returns a position v transformed by the current transformation matrix.
+        /// Returns a position 'point' transformed by the current transformation matrix.
         /// This function is a faster version of MultiplyPoint; but it can only handle regular 3D transformations.
         /// MultiplyPoint is slower, but can handle projective transformations as well.
         /// </summary>
-        /// <param name="point"></param>
+        /// <param name="point">position to be transformed</param>
         /// <returns></returns>
         public Vec3 MultiplyPoint3x4(Vec3 point)
         {
@@ -342,21 +342,26 @@ namespace CustomMath
 
             return str;
         }
-
         public bool ValidTRS()
         {
             //https://learnopengl.com/Getting-started/Transformations
+            //4th column should be 0,0,0,1
             
-            bool valid = true;
+            //This is more performant, may be less precise
+            if(Math.Abs(m30) > Double.Epsilon) return false; //row 1 = 0 ?
+            if(Math.Abs(m31) > Double.Epsilon) return false; //row 2 = 0 ?
+            if(Math.Abs(m32) > Double.Epsilon) return false; //row 3 = 0 ?
+            if(m33 < Double.Epsilon) return false; //row 4 > 0 ?
+            if(m33 - 1.0f > Double.Epsilon) return false; //row 4 < 1 ?
+            return true;
             
-            //This part is NOT performant (but it works)
-            valid &= Math.Abs(m30) < Double.Epsilon; //4th column should be 0,0,0,1
-            valid &= Math.Abs(m31) < Double.Epsilon; //4th column should be 0,0,0,1
-            valid &= Math.Abs(m32) < Double.Epsilon; //4th column should be 0,0,0,1
-            
-            valid &= Math.Abs(m33 - 1.0f) < Double.Epsilon; //4th column should be 0,0,0,1
-            
-            return valid;
+            // //This part is NOT performant (but it works)
+            //bool valid = true;
+            // valid &= Math.Abs(m30) < Double.Epsilon; 
+            // valid &= Math.Abs(m31) < Double.Epsilon;
+            // valid &= Math.Abs(m32) < Double.Epsilon;
+            // valid &= Math.Abs(m33 - 1.0f) < Double.Epsilon;
+            //return valid;
         }
 
         #endregion
@@ -366,15 +371,29 @@ namespace CustomMath
         //Public Methods
         public static Mat4x4 LookAt(Vec3 from, Vec3 to, Vec3 up)
         {
-            //conseguir vector posicion relativa / from >> to
-            //obtener angulos correspondientes a las coordenadas esfericas
-            //definir rotacion en cada eje para apuntar en la direccion del vector from>to
-            
             Quat rotation = Quat.LookRotation(to - from, up); //this has to be cheating, Lean will kill me
             return Rotate(rotation);
-        } //TODO: NOT WORKING
+        }
+        /// <summary>
+        /// Create an orthogonal projection matrix.
+        /// The returned matrix, when used as a Camera's projection matrix,
+        /// creates a projection of the area between left, right, top and bottom,
+        /// with zNear and zFar as the near and far depth clipping planes
+        /// into a cube going from
+        /// (left, bottom, near) = (-1, -1, -1) to (right, top, far) = (1, 1, 1).
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="bottom"></param>
+        /// <param name="top"></param>
+        /// <param name="zNear"></param>
+        /// <param name="zFar"></param>
+        /// <returns></returns>
         public static Mat4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
         {
+            //This is to say, the area between left, right, top and bottom
+                //gets clamped into a -1 / 1 cube which is then sent to process as img
+            
             //https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/orthographic-projection-matrix.html
             //This engine runs on right major notation
             //Unity and openGL use column major notation, so it's manually transposed (to avoid transpose of 0 values)
@@ -408,17 +427,35 @@ namespace CustomMath
 
             return m;
         }
+        /// <summary>
+        /// Create a perspective projection matrix.
+        /// The returned matrix, when used as a Camera's projection matrix,
+        /// creates a frustrum which clamps and distorts the area inside it,
+        /// taking into account the fov and aspect ratio.
+        /// </summary>
+        /// <param name="fov">Vertical field-of-view in degrees.</param>
+        /// <param name="aspect">Aspect ratio (width divided by height).</param>
+        /// <param name="zNear"></param>
+        /// <param name="zFar"></param>
+        /// <returns></returns>
         public static Mat4x4 Perspective(float fov, float aspect, float zNear, float zFar)
         {
             //https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html
             //This engine runs on right major notation
             //Unity and openGL use column major notation, so it's manually transposed (to avoid transpose of 0 values)
             
+            //Get the top of the frustrum using the fov angle and the zNear,
+                //using trignometry 
+                //(we need half the angle in radians,
+                    //as the angle represents the whole frustrum height and we only need half)
+            float top = Mathf.Tan(fov * 0.5f * Mathf.PI / 180) * zNear;
+            
+            //the aspect dictates the ratio between width and height,
+                //by multiplying the top end by the aspect we get the right end
+            float right = aspect * top; 
+
             //left & bottom are the opposite of right and top, so they're just top & right * -1
-            float scale = Mathf.Tan(fov * 0.5f * Mathf.PI / 180) * zNear;
-            float right = aspect * scale;
             float left = -right;
-            float top = scale;
             float bottom = -top; 
             
             Mat4x4 m = new Mat4x4();
@@ -449,7 +486,9 @@ namespace CustomMath
         {
             //https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
             
+            //Rotation occupies the upper 3x3 matrix, combining itself with Scale
             Mat4x4 m = new Mat4x4();
+            
             
             float xx      = q.x * q.x;
             float xy      = q.x * q.y;
@@ -465,7 +504,7 @@ namespace CustomMath
 
             m.m00  = 1 - 2 * ( yy + zz );
             m.m01  =     2 * ( xy - zw );
-            m.m02 =     2 * ( xz + yw );
+            m.m02  =     2 * ( xz + yw );
 
             m.m10  =     2 * ( xy + zw );
             m.m11  = 1 - 2 * ( xx + zz );
@@ -483,6 +522,7 @@ namespace CustomMath
         {
             //https://learnopengl.com/Getting-started/Transformations
             
+            //Scale is stored in the diagonal
             Mat4x4 m = identity;
             m.m00 = scale.x;
             m.m11 = scale.y;
@@ -493,6 +533,7 @@ namespace CustomMath
         {
             //https://learnopengl.com/Getting-started/Transformations
             
+            //Translation is stored in the last column
             Mat4x4 m = identity;
             m.m03 = translation.x;
             m.m13 = translation.y;
@@ -507,13 +548,18 @@ namespace CustomMath
             Mat4x4 r = Rotate(rotation);
             Mat4x4 s = Scale(scale);
             
-            
             return t*r*s;
         }
         
         //Methods for properties
+        /// <summary>
+        /// Scalar factor of the matrix
+        /// </summary>
+        /// <param name="m">matrix</param>
+        /// <returns></returns>
         static float GetDeterminant(Mat4x4 m)
         {
+            //https://byjus.com/maths/determinant-of-a-matrix/
             //https://byjus.com/maths/determinant-of-a-3x3-matrix/
             //https://byjus.com/maths/determinant-of-4x4-matrix/
 
@@ -692,9 +738,13 @@ namespace CustomMath
             scaled.SetRow(3, m.GetRow(3) * scalar);
             return scaled;
         }
+        /// <summary>
+        /// the matrix of determinants of the minors obtained from the square matrix
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         static Mat4x4 GetCofactor(Mat4x4 m)
         {
-            //Cofactor Matrix: the matrix of determinants of the minors obtained from the square matrix
             //https://www.cuemath.com/algebra/cofactor-matrix/
             
             Mat4x4 cofactor = Mat4x4.zero;
@@ -710,6 +760,13 @@ namespace CustomMath
 
             return cofactor;
         }
+        /// <summary>
+        /// Determinant of a lesser square matrix
+        /// </summary>
+        /// <param name="m"></param>
+        /// <param name="rowToRemove"></param>
+        /// <param name="colToRemove"></param>
+        /// <returns></returns>
         static float GetMinorDet(Mat4x4 m, int rowToRemove, int colToRemove)
         {
             //Minor: the square matrix formed by deleting one row and one column from some larger square matrix.

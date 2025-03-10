@@ -90,9 +90,9 @@ namespace CustomMath
         {
             //M m = ((Mat4x4)inputs[0]).inverse;
             //M m = Mat4x4.TRS(optionalVec3s[0], optionalQuats[0], optionalVec3s[1]);
-            //M m = Mat4x4.LookAt(optionalVec3s[0], optionalVec3s[1], optionalVec3s[2]);
+            M m = Mat4x4.LookAt(optionalVec3s[0], optionalVec3s[1], optionalVec3s[2]);
             //M m = Mat4x4.Rotate(optionalQuats[0]);
-            M m = Mat4x4.Perspective(optionalFloats[0], optionalFloats[1], optionalFloats[2], optionalFloats[3]);
+            //M m = Mat4x4.Perspective(optionalFloats[0], optionalFloats[1], optionalFloats[2], optionalFloats[3]);
             //M m = Mat4x4.identity;
             // Mat4x4 m1 = m;
             // m1.SetTRS(optionalVec3s[0], optionalQuats[0], optionalVec3s[1]);
@@ -103,9 +103,9 @@ namespace CustomMath
         {
             //M m = ((Matrix4x4)inputs[0]).inverse;
             //M m = Matrix4x4.TRS(optionalVec3s[0], optionalQuats[0], optionalVec3s[1]);
-            //M m = Matrix4x4.LookAt(optionalVec3s[0], optionalVec3s[1], optionalVec3s[2]);
+            M m = Matrix4x4.LookAt(optionalVec3s[0], optionalVec3s[1], optionalVec3s[2]);
             //M m = Matrix4x4.Rotate(optionalQuats[0]);
-            M m = Matrix4x4.Perspective(optionalFloats[0], optionalFloats[1], optionalFloats[2], optionalFloats[3]);
+            //M m = Matrix4x4.Perspective(optionalFloats[0], optionalFloats[1], optionalFloats[2], optionalFloats[3]);
             //M m = Matrix4x4.identity;
             // Matrix4x4 m1 = m;
             // m1.SetTRS(optionalVec3s[0], optionalQuats[0], optionalVec3s[1]);
